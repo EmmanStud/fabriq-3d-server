@@ -8,6 +8,10 @@
   "dependencies": {
     "express": "^4.22.2"
   },
+  
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "",
   "keywords": [],
   "author": "",

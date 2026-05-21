@@ -2,7 +2,7 @@ const express = require('express');
 const https = require('https');
 const http = require('http');
 const app = express();
-const PORT = 3456;
+
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -46,7 +46,9 @@ app.get('/proxy', (req, res) => {
 
 app.get('/viewer', (req, res) => {
   const glbUrl = sanitizeUrl(req.query.url);
-  const proxiedUrl = `http://192.168.1.6:${PORT}/proxy?url=${encodeURIComponent(glbUrl)}`;
+  const host = req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
+  const proxiedUrl = `${protocol}://${host}/proxy?url=${encodeURIComponent(glbUrl)}`;
   console.log(`[VIEWER] Generating viewer for: ${glbUrl}`);
   console.log(`[VIEWER] Proxied URL: ${proxiedUrl}`);
   
