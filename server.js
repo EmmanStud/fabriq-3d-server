@@ -112,6 +112,17 @@ app.get('/viewer', (req, res) => {
     var debug = document.getElementById('debug');
     var pendingColor = null;
     var modelReady = false;
+    var pendingFabric = null;
+    var fabricProps = {
+      satin:   { roughness: 0.25, metalness: 0.05 },
+      silk:    { roughness: 0.15, metalness: 0.05 },
+      velvet:  { roughness: 0.90, metalness: 0.0  },
+      chiffon: { roughness: 0.55, metalness: 0.0  },
+      lace:    { roughness: 0.75, metalness: 0.0  },
+      tulle:   { roughness: 0.70, metalness: 0.0  },
+      organza: { roughness: 0.45, metalness: 0.08 },
+      crepe:   { roughness: 0.60, metalness: 0.0  },
+    };
 
     function log(msg) {
       debug.textContent = msg;
@@ -129,6 +140,31 @@ app.get('/viewer', (req, res) => {
         log('Queued: ' + hex + ' (model not ready yet)');
       }
     };
+
+    window.applyFabric = function(fabricId) {
+      log('applyFabric called: ' + fabricId);
+      if (modelReady) {
+        doApplyFabric(fabricId);
+      } else {
+        pendingFabric = fabricId;
+        log('Queued fabric: ' + fabricId + ' (model not ready yet)');
+      }
+    };
+
+    function doApplyFabric(fabricId) {
+      try {
+        var mats = mv.model ? mv.model.materials : null;
+        if (!mats || mats.length === 0) { log('No materials found for fabric'); return; }
+        var props = fabricProps[fabricId] || { roughness: 0.5, metalness: 0.0 };
+        for (var i = 0; i < mats.length; i++) {
+          mats[i].pbrMetallicRoughness.setRoughnessFactor(props.roughness);
+          mats[i].pbrMetallicRoughness.setMetallicFactor(props.metalness);
+        }
+        log('Fabric applied: ' + fabricId + ' (roughness ' + props.roughness + ')');
+      } catch(e) {
+        log('Fabric error: ' + e.message);
+      }
+    }
 
     function doApply(hex) {
       try {
@@ -153,11 +189,18 @@ app.get('/viewer', (req, res) => {
       loading.style.display = 'none';
       mv.classList.add('ready');
       var c = mv.model ? mv.model.materials.length : 0;
-      log('Model ready! ' + c + ' materials');
+      var names = [];
+      for (var i = 0; i < c; i++) { names.push(i + ':' + (mv.model.materials[i].name || 'unnamed')); }
+      log('Model ready! ' + c + ' materials [' + names.join(', ') + ']');
       if (pendingColor) {
         var col = pendingColor;
         pendingColor = null;
         setTimeout(function(){ doApply(col); }, 300);
+      }
+      if (pendingFabric) {
+        var fab = pendingFabric;
+        pendingFabric = null;
+        setTimeout(function(){ doApplyFabric(fab); }, 300);
       }
     });
 
