@@ -24,7 +24,7 @@ const sanitizeUrl = (url) => {
 
 // Only these hosts may be fetched through the proxy. This server is public,
 // so without an allowlist anyone can use it to fetch arbitrary URLs (SSRF).
-const ALLOWED_PROXY_HOSTS = ['res.cloudinary.com'];
+const ALLOWED_PROXY_HOSTS = ['res.cloudinary.com', 'assets.meshy.ai'];
 
 const isAllowedProxyUrl = (url) => {
   try {
